@@ -1,65 +1,107 @@
-import Image from "next/image";
+// --- Imports (Shadcn + Next.js) ---
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { RocketIcon, WrenchIcon } from "lucide-react";
+import Image from "next/image"; // Next.js Image Component
 
-export default function Home() {
+// --- SRE/DevOps Note (Turn 151): ---
+// 1. FIX: Added 'dark' className to <main> to force-load .dark CSS variables.
+// 2. FIX: Moved Title block INSIDE <header> for vertical alignment.
+// 3. FIX: Added invisible spacer to <header> to force title to the true center.
+// 4. FIX: Updated toggle text to 'What' / 'How'.
+
+export default function LabsPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    // FIX 1: Added 'dark' class to activate .dark variables from globals.css
+    <main className="dark flex min-h-screen w-full flex-col items-center bg-slate-950 text-slate-50 p-8 md:p-12">
+      
+      {/* --- Header: Contains Logo, Title, and Spacer --- */}
+      {/* FIX 2: Title block is now INSIDE the header flex container */}
+      <header className="w-full max-w-7xl mb-12 flex items-center justify-between">
+        
+        {/* Logo (Left) */}
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+          src="/logo-ph3-light.svg"
+          alt="PH3 Digital Factory Logo (</PH³>)"
+          width={180}
+          height={40}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        
+        {/* Page Title (Center) */}
+        <div className="text-center">
+          <h1 className="text-4xl font-bold tracking-tight">PH3 Digital Factory</h1>
+          <p className="text-xl text-slate-400">Labs & Solutions Showroom</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        
+        {/* FIX 3: Invisible spacer. Matches logo width to force title center. */}
+        <div className="w-[180px]" /> 
+      
+      </header>
+
+      {/* --- UX Toggle: Global (Value vs. Process) --- */}
+      {/* FIX 4: Updated toggle nomenclature */}
+      <div className="flex items-center space-x-2 mb-8">
+        <Label htmlFor="mode-switch" className="text-slate-400">
+          Business View (What)
+        </Label>
+        <Switch id="mode-switch" />
+        <Label htmlFor="mode-switch" className="font-bold">
+          Technical View (How)
+        </Label>
+      </div>
+
+      {/* --- Product Container --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        
+        {/* P0: IAM-HR Demo Card */}
+        <Card className="bg-slate-900 border-slate-700 text-slate-50 w-[380px]">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Demo: IAM-HR Sandbox
+              <Badge variant="outline" className="border-green-500 text-green-500">
+                <RocketIcon className="mr-1 h-3 w-3" />
+                Live (P0)
+              </Badge>
+            </CardTitle>
+            <CardDescription className="text-slate-400 pt-2">
+              An interactive sandbox simulating an employee offboarding workflow,
+              powered by AI (Gemini) and real-time auditing.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-slate-300 italic">
+              [Placeholder: Google Sheet (Panel & Log) and Google Form (Action) 
+              will be embedded here.]
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-between items-center">
+            {/* Tech Stack Badges */}
+            <div className="flex gap-2">
+              <Badge variant="secondary" className="bg-slate-700 text-slate-300">n8n</Badge>
+              <Badge variant="secondary" className="bg-slate-700 text-slate-300">GCP</Badge>
+              <Badge variant="secondary" className="bg-slate-700 text-slate-300">Gemini</Badge>
+            </div>
+            
+            {/* Button will now use the '--primary' blue from globals.css */}
+            <Button variant="default">
+              <WrenchIcon className="mr-2 h-4 w-4" /> Explore Solution
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* (P1: FinOps Demo Card will go here) */}
+
+      </div>
+    </main>
   );
 }
