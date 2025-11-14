@@ -1,4 +1,6 @@
 // --- Imports (Shadcn + Next.js) ---
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Button } from "@/components/ui/button";
 import {
   Card,
