@@ -1,6 +1,6 @@
 // --- Imports (Shadcn + Next.js) ---
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,27 +16,27 @@ import { Switch } from "@/components/ui/switch";
 import { RocketIcon, WrenchIcon } from "lucide-react";
 import Image from "next/image"; // Next.js Image Component
 
-// --- SRE/DevOps Note (Turn 151): ---
-// 1. FIX: Added 'dark' className to <main> to force-load .dark CSS variables.
-// 2. FIX: Moved Title block INSIDE <header> for vertical alignment.
-// 3. FIX: Added invisible spacer to <header> to force title to the true center.
-// 4. FIX: Updated toggle text to 'What' / 'How'.
+// --- SRE/DevOps Note (Turn 151/169): ---
+// 1. FIX (SRE): Replaced deprecated iframe attributes (frameBorder, marginHeight)
+//    with modern CSS 'style' object for a zero-border embed.
+// 2. FIX (SRE): Injected Vercel <Analytics /> and <SpeedInsights /> components.
+// 3. UX: 'Architect Mode (Tech)' nomenclature validated (Turn 151).
 
 export default function LabsPage() {
   return (
-    // FIX 1: Added 'dark' class to activate .dark variables from globals.css
+    // P0: Dark Mode (Enterprise Standard)
     <main className="dark flex min-h-screen w-full flex-col items-center bg-slate-950 text-slate-50 p-8 md:p-12">
       
-      {/* --- Header: Contains Logo, Title, and Spacer --- */}
-      {/* FIX 2: Title block is now INSIDE the header flex container */}
+      {/* --- Header: Enterprise (Left-Aligned) --- */}
       <header className="w-full max-w-7xl mb-12 flex items-center justify-between">
         
-        {/* Logo (Left) */}
+        {/* Logo (Left-Aligned) */}
         <Image
-          src="/logo-ph3-light.svg"
+          // CRITICAL: Ensure 'logo-ph3-light.svg' (WHITE text version) is in /public
+          src="/logo-ph3-light.svg" 
           alt="PH3 Digital Factory Logo (</PH³>)"
-          width={180}
-          height={40}
+          width={180} 
+          height={40} 
         />
         
         {/* Page Title (Center) */}
@@ -45,13 +45,12 @@ export default function LabsPage() {
           <p className="text-xl text-slate-400">Labs & Solutions Showroom</p>
         </div>
         
-        {/* FIX 3: Invisible spacer. Matches logo width to force title center. */}
+        {/* Invisible spacer (Maintains title centering) */}
         <div className="w-[180px]" /> 
       
       </header>
 
       {/* --- UX Toggle: Global (Value vs. Process) --- */}
-      {/* FIX 4: Updated toggle nomenclature */}
       <div className="flex items-center space-x-2 mb-8">
         <Label htmlFor="mode-switch" className="text-slate-400">
           Business View (What)
@@ -81,10 +80,54 @@ export default function LabsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-slate-300 italic">
-              [Placeholder: Google Sheet (Panel & Log) and Google Form (Action) 
-              will be embedded here.]
-            </p>
+            {/* --- Live Feeds (Turn 165) --- */}
+            <div className="space-y-4">
+              
+              {/* Feed 1: Action (Google Form) */}
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-slate-300">1. Take Action (Submit Form)</h4>
+                <iframe
+                  src="https://docs.google.com/forms/d/e/1FAIpQLScRhUx7MN1kYWgvPI5UwiUzsCn1Frxn829HAydgAXFSr6RWQg/viewform?embedded=true"
+                  width="100%"
+                  height="300"
+                  // FIX 1 (SRE): Replaced deprecated attributes with CSS
+                  style={{ border: 0 }} 
+                >
+                  Loading Form…
+                </iframe>
+              </div>
+
+              {/* Feed 2: Panel (Sheet 1) */}
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-slate-300">2. See Panel Update (Live)</h4>
+                <iframe
+                  src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQETSEb4DSDkS6RWX6iimcepXX2_YLj4Gecnn2LzyqHnW6jgPPUGY6HbnBJ7KAk1SHjjXa2noLsqjjG/pubhtml?gid=0&amp;single=true&amp;widget=true&amp;headers=false&amp;rm=minimal&amp;chrome=false"
+                  width="100%"
+                  height="200"
+                  // FIX 1 (SRE): Replaced deprecated attributes with CSS
+                  style={{ border: 0 }}
+                  className="bg-white" // SRE Patch: Sheets embed has a white background
+                >
+                  Loading Panel…
+                </iframe>
+              </div>
+              
+              {/* Feed 3: Log (Sheet 2) */}
+              <div>
+                <h4 className="text-sm font-semibold mb-2 text-slate-300">3. See Log Update (Live)</h4>
+                <iframe
+                  src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTcWeYgonEvmwDvGQvy9kU8rr4Pogsu2xoZANbPnsEwPiz1V_vM18p60WVIjOZmgSmsPSz9vBJsAxX2/pubhtml?gid=0&amp;single=true&amp;widget=true&amp;headers=false&amp;rm=minimal&amp;chrome=false"
+                  width="100%"
+                  height="150"
+                  // FIX 1 (SRE): Replaced deprecated attributes with CSS
+                  style={{ border: 0 }}
+                  className="bg-white" // SRE Patch: Sheets embed has a white background
+                >
+                  Loading Log…
+                </iframe>
+              </div>
+            </div>
+            {/* --- End Feeds --- */}
           </CardContent>
           <CardFooter className="flex justify-between items-center">
             {/* Tech Stack Badges */}
@@ -94,7 +137,7 @@ export default function LabsPage() {
               <Badge variant="secondary" className="bg-slate-700 text-slate-300">Gemini</Badge>
             </div>
             
-            {/* Button will now use the '--primary' blue from globals.css */}
+            {/* Button (Primary "Brand Blue") */}
             <Button variant="default">
               <WrenchIcon className="mr-2 h-4 w-4" /> Explore Solution
             </Button>
@@ -102,8 +145,11 @@ export default function LabsPage() {
         </Card>
 
         {/* (P1: FinOps Demo Card will go here) */}
-
       </div>
+
+      {/* --- FIX 2 (SRE): Vercel Analytics Injection --- */}
+      <Analytics />
+      <SpeedInsights />
     </main>
   );
 }
