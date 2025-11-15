@@ -1,12 +1,11 @@
-// --- SRE Note (Turn 183): P0.5 (Live Data) ---
-// This code REPLACES the P0.1 (Turn 170) placeholder.
-// 1. Installs 'swr' (Vercel's data fetcher).
-// 2. Installs 'shadcn/ui Table' (Enterprise UI).
-// 3. 'useSWR' fetches the LIVE data from the n8n GET webhook.
-// 4. 'handleSubmit' now uses 'mutate' (SWR) to trigger a refresh
-//    (the "Aha! Moment").
+// --- SRE Note (Turn 189): P0.6 (Hotfix) ---
+// This code REPLACES Turn 183.
+// FIX: The data structure from the native n8n 'Get Rows' node (Turn 173)
+// is an ARRAY: [ { Email, FullName, ... } ]
+// The previous code (Turn 183) expected an OBJECT: { values: [...] }.
+// This fix reads the data as a direct array, resolving the '.slice' crash.
 
-"use client"; // CRITICAL: This component is now fully interactive.
+"use client"; // CRITICAL: This component is interactive.
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,9 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WrenchIcon } from "lucide-react";
-// SRE: Import SWR hooks
-import useSWR, { mutate } from "swr";
-// SRE: Import Shadcn Table components
+import useSWR, { mutate } from "swr"; // SRE: Imports SWR hooks
 import {
   Table,
   TableBody,
@@ -51,11 +48,12 @@ interface Employee {
 
 export function IamHrDemo() {
   // --- SRE: SWR Data Fetching Hook ---
-  // This hook fetches, caches, and re-validates data automatically.
-  const { data, error, isLoading: isTableLoading } = useSWR(N8N_GET_DATA_URL, fetcher, {
-    // SRE: Refresh data every 30 seconds
-    refreshInterval: 30000, 
-  });
+  // SRE FIX: The 'data' variable will be the ARRAY: [ { ... }, { ... } ]
+  const { data: employeesData, error, isLoading: isTableLoading } = useSWR<Employee[]>(
+    N8N_GET_DATA_URL, 
+    fetcher,
+    { refreshInterval: 30000 }
+  );
 
   // --- State for the Form ---
   const [selectedEmployee, setSelectedEmployee] = useState("");
@@ -86,13 +84,10 @@ export function IamHrDemo() {
         throw new Error("Webhook failed");
       }
 
-      // SRE Note: This is the "Aha! Moment" (Turn 143)
       setSubmitMessage("Success! Request logged. Refreshing panel...");
 
       // --- SRE "CHECKMATE" (THE "AHA! MOMENT") ---
-      // Force SWR (the table) to re-fetch its data NOW.
-      // This makes the panel update instantly after the POST.
-      mutate(N8N_GET_DATA_URL);
+      mutate(N8N_GET_DATA_URL); // Force SWR (the table) to re-fetch data
 
     } catch (error) {
       setSubmitMessage("An error occurred. Please try again.");
@@ -108,15 +103,8 @@ export function IamHrDemo() {
     tableContent = <p className="text-slate-400 italic">Loading Live Panel...</p>;
   } else if (error) {
     tableContent = <p className="text-red-500">Error: Failed to load data from n8n.</p>;
-  } else if (data && data.values) {
-    // SRE: Skip the header row (A1, B1, C1...) from Google Sheets
-    const employeesData: Employee[] = data.values.slice(1).map((row: string[]) => ({
-      FullName: row[0],
-      Email: row[1],
-      Status: row[2],
-      AccessGroups: row[3],
-    }));
-
+  } else if (employeesData) { // SRE FIX: Check 'employeesData' (the array)
+    
     tableContent = (
       <Table>
         <TableCaption className="text-slate-400">Live Employee Status Panel</TableCaption>
@@ -128,6 +116,7 @@ export function IamHrDemo() {
           </TableRow>
         </TableHeader>
         <TableBody>
+          {/* SRE FIX: Map 'employeesData' (the array) directly */}
           {employeesData.map((emp) => (
             <TableRow key={emp.Email} className="border-slate-800">
               <TableCell className="font-medium">{emp.FullName}<br/>
@@ -163,13 +152,16 @@ export function IamHrDemo() {
           <SelectContent className="bg-slate-900 border-slate-700 text-slate-50">
             <SelectGroup>
               <SelectLabel>Employees (Active)</SelectLabel>
-              {data && data.values.slice(1)
-                .filter((row: string[]) => row[2] === "ACTIVE")
-                .map((row: string[]) => (
-                  <SelectItem key={row[1]} value={row[1]}>
-                    {row[0]} ({row[1]})
-                  </SelectItem>
-              ))}
+              {/* SRE FIX: Read 'employeesData' (the array) and filter it */}
+              {employeesData &&
+                employeesData
+                  .filter((emp) => emp.Status === "ACTIVE")
+                  .map((emp) => (
+                    // SRE FIX: Use emp.Email and emp.FullName
+                    <SelectItem key={emp.Email} value={emp.Email}>
+                      {emp.FullName} ({emp.Email})
+                    </SelectItem>
+                  ))}
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -196,7 +188,7 @@ export function IamHrDemo() {
       <div className="pt-4">
         <h4 className="text-sm font-semibold text-slate-300">2. See Panel Update (Live)</h4>
         <div className="mt-2 border border-slate-700 rounded-lg">
-          {tableContent}
+          {tableContent} {/* SRE: This will now render correctly */}
         </div>
       </div>
     </div>
