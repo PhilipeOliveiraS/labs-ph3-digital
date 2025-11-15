@@ -1,9 +1,11 @@
-// --- SRE Note (Turn 189): P0.6 (Hotfix) ---
-// This code REPLACES Turn 183.
-// FIX: The data structure from the native n8n 'Get Rows' node (Turn 173)
-// is an ARRAY: [ { Email, FullName, ... } ]
-// The previous code (Turn 183) expected an OBJECT: { values: [...] }.
-// This fix reads the data as a direct array, resolving the '.slice' crash.
+// --- SRE Note (Turn 191): P0.7 (FINAL FIX) ---
+// This code REPLACES Turn 189.
+// FIX (Turn 190): The 'n8n' Webhook node (Turn 172) does NOT return a raw Array.
+// It returns an OBJECT (like { "values": [...] } or { "data": [...] }).
+// The 't.map is not a function' error (Turn 190) proves 'data' is an OBJECT.
+//
+// This fix updates the 'fetcher' (Turn 189) to correctly PARSE the n8n object
+// and extract the array (the "values") *before* SWR uses it.
 
 "use client"; // CRITICAL: This component is interactive.
 
@@ -35,10 +37,8 @@ import { Badge } from "@/components/ui/badge"; // For the Status
 const N8N_GET_DATA_URL = "https://n8n.ph3digital.com.br/webhook/iam-hr-data";
 const N8N_POST_ACTION_URL = "https://n8n.ph3digital.com.br/webhook/iam-hr-action";
 
-// SRE: Define the SWR data fetcher
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
-// SRE: Define the data structure (Defensive Engineering)
+// --- SRE: Define the data structure (Defensive Engineering) ---
+// This is the structure of the *clean* array *after* we extract it.
 interface Employee {
   FullName: string;
   Email: string;
@@ -46,10 +46,42 @@ interface Employee {
   AccessGroups: string;
 }
 
+// --- SRE "CHECKMATE" (THE "HOTFIX" v2) ---
+// The data from n8n (Turn 172) is an OBJECT (like { values: [ ... ] }).
+// We teach the 'fetcher' to "unwrap" the array.
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error("Failed to fetch data from n8n.");
+  }
+  
+  const n8nResponse = await res.json();
+  
+  // SRE FIX (Turn 191): Check if the data is the 'values' property
+  // (This matches the output of the Google Sheets node IF it was the LAST node)
+  if (n8nResponse.values && Array.isArray(n8nResponse.values)) {
+    return n8nResponse.values; // RETURN THE ARRAY
+  }
+  
+  // SRE FIX: Fallback if n8n wrapped it differently (e.g., in 'data')
+  if (n8nResponse.data && Array.isArray(n8nResponse.data)) {
+    return n8nResponse.data; // RETURN THE ARRAY
+  }
+
+  // SRE FIX: Fallback if n8n returned a *raw* array (Turn 189 assumption)
+  if (Array.isArray(n8nResponse)) {
+     return n8nResponse; // RETURN THE ARRAY
+  }
+
+  // If we reach here, the data structure is unknown.
+  throw new Error("Unknown data structure received from n8n API.");
+};
+
+
 export function IamHrDemo() {
   // --- SRE: SWR Data Fetching Hook ---
-  // SRE FIX: The 'data' variable will be the ARRAY: [ { ... }, { ... } ]
-  const { data: employeesData, error, isLoading: isTableLoading } = useSWR<Employee[]>(
+  // SRE FIX: We now expect 'data' (aliased to 'employeeRows') to be the *clean array*.
+  const { data: employeeRows, error, isLoading: isTableLoading } = useSWR<string[][]>(
     N8N_GET_DATA_URL, 
     fetcher,
     { refreshInterval: 30000 }
@@ -61,39 +93,29 @@ export function IamHrDemo() {
   const [submitMessage, setSubmitMessage] = useState("");
 
   const handleSubmit = async () => {
+    // ... (O código handleSubmit (Turn 189) está 100% CORRETO e não muda) ...
     if (!selectedEmployee) {
       setSubmitMessage("Please select an employee to offboard.");
       return;
     }
-    
     setIsSubmitting(true);
     setSubmitMessage("");
-
     try {
-      // SRE Note: POSTing to the n8n action webhook (Turn 173)
       const response = await fetch(N8N_POST_ACTION_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // SRE Note: This key MUST match the Zod schema (Turn 182)
           "Select Employee to Offboard": selectedEmployee,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Webhook failed");
-      }
-
+      if (!response.ok) throw new Error("Webhook failed");
       setSubmitMessage("Success! Request logged. Refreshing panel...");
-
-      // --- SRE "CHECKMATE" (THE "AHA! MOMENT") ---
-      mutate(N8N_GET_DATA_URL); // Force SWR (the table) to re-fetch data
-
+      mutate(N8N_GET_DATA_URL);
     } catch (error) {
       setSubmitMessage("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
-      setSelectedEmployee(""); // Reset dropdown
+      setSelectedEmployee("");
     }
   };
 
@@ -102,9 +124,18 @@ export function IamHrDemo() {
   if (isTableLoading) {
     tableContent = <p className="text-slate-400 italic">Loading Live Panel...</p>;
   } else if (error) {
-    tableContent = <p className="text-red-500">Error: Failed to load data from n8n.</p>;
-  } else if (employeesData) { // SRE FIX: Check 'employeesData' (the array)
+    // SRE: Display the *actual* error message for debugging
+    tableContent = <p className="text-red-500">Error: {error.message}</p>;
+  } else if (employeeRows) { // SRE FIX: Check 'employeeRows' (the array)
     
+    // SRE: Skip the header row (A1, B1, C1...) from Google Sheets
+    const employeesData: Employee[] = employeeRows.slice(1).map((row: string[]) => ({
+      FullName: row[0],
+      Email: row[1],
+      Status: row[2],
+      AccessGroups: row[3],
+    }));
+
     tableContent = (
       <Table>
         <TableCaption className="text-slate-400">Live Employee Status Panel</TableCaption>
@@ -116,7 +147,6 @@ export function IamHrDemo() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {/* SRE FIX: Map 'employeesData' (the array) directly */}
           {employeesData.map((emp) => (
             <TableRow key={emp.Email} className="border-slate-800">
               <TableCell className="font-medium">{emp.FullName}<br/>
@@ -152,14 +182,14 @@ export function IamHrDemo() {
           <SelectContent className="bg-slate-900 border-slate-700 text-slate-50">
             <SelectGroup>
               <SelectLabel>Employees (Active)</SelectLabel>
-              {/* SRE FIX: Read 'employeesData' (the array) and filter it */}
-              {employeesData &&
-                employeesData
-                  .filter((emp) => emp.Status === "ACTIVE")
-                  .map((emp) => (
-                    // SRE FIX: Use emp.Email and emp.FullName
-                    <SelectItem key={emp.Email} value={emp.Email}>
-                      {emp.FullName} ({emp.Email})
+              {/* SRE FIX: Read 'employeeRows' (the array) and filter it */}
+              {employeeRows &&
+                employeeRows.slice(1) // Skip header row
+                  .filter((row: string[]) => row[2] === "ACTIVE")
+                  .map((row: string[]) => (
+                    // SRE FIX: Use array indices
+                    <SelectItem key={row[1]} value={row[1]}>
+                      {row[0]} ({row[1]})
                     </SelectItem>
                   ))}
             </SelectGroup>
