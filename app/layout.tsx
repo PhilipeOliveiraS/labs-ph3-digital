@@ -23,11 +23,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ margin: 0, padding: 0 }}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        style={{ 
+          margin: 0, 
+          padding: 0,
+          backgroundColor: 'blue' // Teste visual
+        }}
       >
-        {children}
+        <div style={{ backgroundColor: 'green' }}> {/* Container de teste */}
+          {children}
+        </div>
       </body>
     </html>
   );

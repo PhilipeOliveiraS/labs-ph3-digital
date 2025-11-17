@@ -6,6 +6,20 @@ Note: Color values updated to OKLCH. Brand primary (blue) set for dark mode.
 @import "tailwindcss";
 @import "tw-animate-css";
 
+* * {
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -125,6 +139,6 @@ Note: Color values updated to OKLCH. Brand primary (blue) set for dark mode.
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground m-0 p-0;
   }
 }

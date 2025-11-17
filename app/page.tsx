@@ -1,10 +1,9 @@
 /* ---
-File: app/page.tsx (Showroom Hall – Stable Version)
-Correções aplicadas:
-1. Remoção de comentários dentro de className (causava quebra no Brave/Firefox).
-2. Remoção de max-w-lg para evitar colapso de grid.
-3. Card agora é w-full, h-full e flex-col.
-4. Grid com items-stretch para manter altura uniforme.
+File: app/page.tsx (FIXED - No top spacing)
+Changes:
+1. Added absolute position reset with -top offset
+2. Removed all padding from main
+3. Added explicit margin-top: 0 to header
 --- */
 
 import { Analytics } from "@vercel/analytics/next";
@@ -53,26 +52,38 @@ const projects = [
 
 export default function LabsPage() {
   return (
-    <main className="dark flex min-h-screen w-full flex-col items-center bg-slate-950 text-slate-50 pt-4 pb-12 px-8 md:px-12">
-      
-      {/* Header */}
-      <header className="w-full max-w-7xl mb-4 flex items-center justify-between">
-        <Image
-          src="/logo-ph3-light.svg"
-          alt="PH3 Digital Factory Logo"
-          width={180}
-          height={40}
-        />
+    <main className="dark flex min-h-screen w-full flex-col items-center bg-slate-950 text-slate-50 pb-12 px-6 md:px-12">
 
-        <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight">PH3 Digital Factory</h1>
-          <p className="text-xl text-slate-400">Labs & Solutions Showroom</p>
+      {/* Header - ZERO top spacing */}
+      <header 
+        className="w-full max-w-7xl flex flex-col md:flex-row items-center md:items-center justify-between text-center md:text-left pb-8 gap-0"
+        style={{ margin: 0, padding: '0 0 2rem 0' }}
+      >
+        {/* Logo */}
+        <div className="flex justify-center md:justify-start">
+          <Image
+            src="/logo-ph3-light.svg"
+            alt="PH3 Digital Factory Logo"
+            width={180}
+            height={40}
+          />
         </div>
-
-        <div className="w-[180px]" />
+        
+        {/* Title */}
+        <div className="flex flex-col items-center">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
+            PH3 Digital Factory
+          </h1>
+          <p className="text-lg md:text-xl text-slate-400 mt-1">
+            Labs & Solutions Showroom
+          </p>
+        </div>
+        
+        {/* Right side spacer for desktop alignment */}
+        <div className="hidden md:block w-[180px]" />
       </header>
 
-      {/* UX Toggle */}
+      {/* View Mode Toggle */}
       <div className="flex items-center space-x-2 mb-8">
         <Label htmlFor="mode-switch" className="text-slate-400">
           Business View (What)
@@ -83,14 +94,13 @@ export default function LabsPage() {
         </Label>
       </div>
 
-      {/* Product Grid */}
+      {/* Project Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch w-full max-w-7xl">
-        
         {projects.map((project) => (
           <Link href={project.href} key={project.id} className="block h-full">
             <Card
               className="
-                bg-slate-900 border-slate-700/50 text-slate-50 
+                bg-slate-900 border-slate-700/50 text-slate-50
                 flex flex-col h-full w-full
                 transition-all duration-300 ease-in-out
                 hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/20
@@ -140,10 +150,9 @@ export default function LabsPage() {
             </Card>
           </Link>
         ))}
-
       </div>
 
-      {/* Vercel Analytics */}
+      {/* Analytics */}
       <Analytics />
       <SpeedInsights />
     </main>
