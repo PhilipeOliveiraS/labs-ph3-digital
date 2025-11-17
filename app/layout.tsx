@@ -26,15 +26,9 @@ export default function RootLayout({
     <html lang="en" style={{ margin: 0, padding: 0 }}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{ 
-          margin: 0, 
-          padding: 0,
-          backgroundColor: 'blue' // Teste visual
-        }}
+        style={{ margin: 0, padding: 0 }}
       >
-        <div style={{ backgroundColor: 'green' }}> {/* Container de teste */}
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );
