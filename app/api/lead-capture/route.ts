@@ -45,8 +45,11 @@ export async function POST(request: Request) {
     const data = await res.json();
     return NextResponse.json(data);
 
-  } catch (error: any) {
-    console.error("[Lead Capture Error]:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error
+      ? error.message
+      : "Unexpected lead capture error";
+    console.error("[Lead Capture Error]:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
